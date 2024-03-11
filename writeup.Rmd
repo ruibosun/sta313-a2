@@ -1,0 +1,31 @@
+---
+title: "CHANGE TITLE"
+author: 
+  - Ruibo Sun and Ningxi Huang
+date: "`r Sys.time()`"
+date-format: "D MMMM YYYY"
+abstract: "ADD ABSTRACT"
+format: pdf
+number-sections: true
+# bibliography: references.bib
+---
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+# read packages
+library(tidyverse)
+library(dplyr)
+```
+
+## Plot 1
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+
+```
+
