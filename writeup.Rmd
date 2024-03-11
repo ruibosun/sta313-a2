@@ -62,7 +62,7 @@ ggplot(bike_raw, aes(x = OCC_HOUR)) +
 
 
 
-## Plot 1 version 1 grarf
+## Plot 1 version 1
 ```{r}
 #| echo: false
 #| warning: false
