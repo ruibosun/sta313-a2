@@ -18,14 +18,222 @@ number-sections: true
 # read packages
 library(tidyverse)
 library(dplyr)
+library(readr)
+library(ggmap)
 ```
 
-## Plot 1
+
 ```{r}
 #| include: false
 #| warning: false
 #| message: false
 
+# import data
+
+bike_raw <- read_csv("input/Bicycle_Thefts_Open_Data.csv")
+```
+
+## add-up to plot1
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+bike_counts <- bike_raw %>%
+  group_by(OCC_HOUR) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+
+# Identify top 3 hours
+top_hours <- head(bike_counts, 5)
+
+# Create the plot
+ggplot(bike_raw, aes(x = OCC_HOUR)) +
+  geom_bar(stat = "count", fill="darkgrey") +
+  geom_text(data = top_hours, aes(x = OCC_HOUR, y = count, label = count),
+            position = position_dodge(width = 0.5), vjust = -0.35, color = "black",size=3.1) +
+  labs(title = "Number of Offenses Based on Hours", 
+       x = "Hour of Occurrence", 
+       y = "Number of Offenses") +
+  theme_minimal() +
+  theme(panel.background = element_blank(),)+
+  scale_x_continuous(breaks = seq(0, 23, by = 1))
+```
+
+
+
+## Plot 1 version 1
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+# Convert OCC_DOW to an ordered factor
+bike_raw$OCC_DOW <- factor(bike_raw$OCC_DOW, 
+                           levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
+
+# Create the plot
+ggplot(bike_raw, aes(x = OCC_HOUR, fill = OCC_DOW)) +
+  geom_bar(stat = "count") + 
+  labs(title = "Number of Offenses Based on Hours", 
+       x = "Hour of Occurrence", 
+       y = "Number of Offenses") +
+  theme_minimal() +
+  facet_wrap(~OCC_DOW, scales = "free_y", nrow = 4) +
+  scale_fill_manual(values = c("Monday" = "lightpink", 
+                               "Tuesday" = "lightblue", 
+                               "Wednesday" = "lightgreen", 
+                               "Thursday" = "red", 
+                               "Friday" = "blue",
+                               "Saturday" = "purple",
+                               "Sunday" = "orange")) +
+  theme(strip.background = element_rect(fill = "lightpink"),
+        strip.text = element_text(color = "black"), legend.position="none",panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
 ```
+
+## plot 1 version2
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+# Convert OCC_DOW to an ordered factor
+bike_raw$OCC_DOW <- factor(bike_raw$OCC_DOW, 
+                           levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
+
+# Create the plot with overlapping bars
+ggplot(bike_raw, aes(x = OCC_HOUR, fill = OCC_DOW)) +
+  geom_bar(stat = "count", position = "identity", alpha = 0.5) +  # Overlapping bars with transparency
+  labs(title = "Number of Offenses Based on Hours", 
+       x = "Hour of Occurrence", 
+       y = "Number of Offenses") +
+  theme_minimal() +
+  scale_fill_manual(values = c("Monday" = "lightpink", 
+                               "Tuesday" = "lightblue", 
+                               "Wednesday" = "lightgreen", 
+                               "Thursday" = "red", 
+                               "Friday" = "blue",
+                               "Saturday" = "purple",
+                               "Sunday" = "orange")) +
+  theme(legend.position = "right",panel.grid.major = element_blank(), panel.grid.minor = element_blank())  # Adjust legend position if needed
+
+```
+
+## plot 2
+
+```{r}
+# data cleaning for plot 2
+#| include: false
+#| warning: false
+#| message: false
+
+bike_raw$y_n <- ifelse(bike_raw$STATUS =='RECOVERED','Yes','NO')
+
+```
+
+```{r}
+
+#| echo: false
+#| warning: false
+#| message: false
+
+
+# Assuming bike_raw has a column 'OCC_YEAR' for the year of occurrence
+# and a column 'y_n' indicating if the bike was recovered ('Yes' or 'No')
+
+# Summarize data
+yearly_counts <- bike_raw %>% filter(OCC_YEAR>2000) %>%
+  group_by(OCC_YEAR, y_n) %>%
+  summarise(count = n(), .groups = 'drop')
+
+# Create the time series plot
+ggplot(yearly_counts, aes(x = OCC_YEAR, y = count, color = y_n)) +
+  geom_line() +  # Line plot
+  geom_point() + # Add points to the lines
+  labs(title = "Yearly Bike Recovery Status", 
+       x = "Year of Occurrence", 
+       y = "Number of Bikes",
+       color = "Recovery Status") +
+  theme_minimal() +
+  scale_x_continuous(breaks = unique(yearly_counts$OCC_YEAR))  # Ensure all years are included as breaks
+
+```
+
+## plot 3: the map!!
+```{r}
+register_stadiamaps(key = "ddfcfc93-13e6-497f-8336-c5fdd043f311")
+
+toronto_map <- get_stadiamap(bbox = c(left = -79.639219, bottom = 43.581024, right = -79.113219, top = 43.855457), 
+                             maptype = "stamen_toner_lite", 
+                             zoom = 12)
+# data cleaning
+bike_aggregated <- bike_raw %>%
+  group_by(LONG_WGS84, LAT_WGS84) %>%
+  summarise(count = n(), .groups = 'drop')
+```
+
+```{r}
+ggmap(toronto_map) +
+  geom_point(data = bike_aggregated, aes(x = LONG_WGS84, y = LAT_WGS84, color = count), alpha = 0.5) +
+  scale_color_gradient(low = "lightblue", high = "black") +  # Adjust color gradient as needed
+  labs(title = "Incident Occurrences in Toronto", 
+       x = "Longitude", 
+       y = "Latitude",
+       color = "Number of Occurrences") +
+  theme_minimal()
+```
+
+```{r}
+# Load necessary libraries
+library(ggplot2)
+library(sf)
+library(dplyr)
+
+# Step 1: Load the geographic data
+toronto_neighborhoods <- st_read(file.path("input/toneighshape/Neighbourhoods v2_region.shp"))
+
+# Step 2: Aggregate bike theft data
+# Replace `neighborhood_name` with the actual column name from your bike data
+bike_thefts_agg <- bike_raw %>%
+  group_by(NEIGHBOURHOOD_158) %>%
+  summarise(count = n(), .groups = 'drop')
+
+# Step 3: Merge the geographic and theft data
+# Replace `NAME` with the neighborhood name column from the shapefile
+toronto_thefts_geo <- merge(toronto_neighborhoods, bike_thefts_agg, 
+                            by.x = "NAME", by.y = "NEIGHBOURHOOD_158")
+
+# Step 4: Create the map
+ggplot(toronto_thefts_geo) +
+  geom_sf(aes(fill = count), color = "white", size = 0.2) +
+  scale_fill_gradient(low = "beige", high = "darkred") +  # Adjust color scale as needed
+  labs(title = "Bike Thefts in Toronto by Neighborhood", 
+       fill = "Number of Thefts") +
+  theme_minimal() +
+  theme(legend.position = "right", panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+```
+## plot 4: word cloud
+```{r}
+library(wordcloud2) 
+
+bike_info<-bike_raw%>%select(BIKE_COLOUR,BIKE_COST,BIKE_MODEL, BIKE_TYPE)
+ 
+bike_info <- bike_info %>%
+  group_by(BIKE_COLOUR) %>%
+  summarise(freq = n()) %>%
+  ungroup()
+
+mo_info <- bike_raw %>%
+  group_by(OCC_MONTH) %>%
+  summarise(freq = n()) %>%
+  ungroup()
+
+```
+
+```{r}
+
+wordcloud2(bike_info, size=1.2, color='random-light', backgroundColor = "white")
+wordcloud2(mo_info, size=1.2, color='random-light', backgroundColor = "white")
+```
+
 
