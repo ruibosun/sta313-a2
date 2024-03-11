@@ -1,7 +1,7 @@
 ---
 title: "CHANGE TITLE"
 author: 
-  - Ruibo Sun and Ningxi Huang
+  - Ruibo Sun and Nixi Huang
 date: "`r Sys.time()`"
 date-format: "D MMMM YYYY"
 abstract: "ADD ABSTRACT"
