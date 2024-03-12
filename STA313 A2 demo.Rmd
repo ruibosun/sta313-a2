@@ -1,0 +1,385 @@
+---
+title: "Your title"
+author: "Your name"
+output: html_document
+header-includes:
+  - \usepackage{titling}
+  - \pretitle{\begin{flushleft}\LARGE}
+  - \posttitle{\end{flushleft}\LARGE}
+  - \preauthor{\begin{flushleft}}
+  - \postauthor{\end{flushleft}}
+  - \predate{\begin{flushleft}}
+  - \postdate{\end{flushleft}}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+
+library(tidyverse)
+library(lubridate)
+```
+
+
+```{r}
+data <- read.csv("input/Bicycle_Thefts_Open_Data.csv", header=T)
+```
+
+Just for demo:
+
+自己找临界点 不一定要用 500 或是 1000
+
+这里只是示范数据处理操作，不一定要做这个，如果故事没有用到这两个变量就可以删
+
+```{r}
+a <- table(data$BIKE_MAKE)
+names(a)[a > 500]
+data$BIKE_MAKE[!data$BIKE_MAKE %in% names(a)[a > 500] ] <- "Other"
+table(data$BIKE_MAKE)
+
+a <- table(data$BIKE_COLOUR)
+names(a)[a > 1000]
+data$BIKE_COLOUR[!data$BIKE_COLOUR %in% names(a)[a > 1000] ] <- "Other"
+table(data$BIKE_COLOUR)
+```
+
+# Story 1
+
+Look at yearly trend:
+
+Notice the seasonal cycles.
+
+```{r}
+data$Occurrence_Date1 <- as.Date(data$OCC_DATE)
+table(data$OCC_YEAR)
+```
+
+```{r}
+data %>% filter(Occurrence_Date1 >= "2014-01-01") %>% 
+  ggplot(aes(x=Occurrence_Date1)) + geom_line(aes(fill=..count..), stat="bin", binwidth=10) +
+   theme_bw() + scale_x_continuous(breaks = c(
+     as.Date("2014-01-01"),
+     as.Date("2015-01-01"),
+     as.Date("2016-01-01"),
+     as.Date("2017-01-01"),
+     as.Date("2018-01-01"),
+     as.Date("2019-01-01"),
+     as.Date("2020-01-01"),
+     as.Date("2021-01-01"),
+     as.Date("2022-01-01"),
+     as.Date("2023-01-01"))
+     ) + 
+    theme(axis.text.x = element_text(angle=45, vjust=0.5))
+```
+
+```{r}
+start <- c("2014-05-01", "2015-05-01", "2016-05-01", "2017-05-01", "2018-05-01" ,"2019-05-01", "2020-05-01", "2021-05-01",
+           "2022-05-01", "2023-05-01")
+end   <- c("2014-10-31", "2015-10-31", "2016-10-31", "2017-10-31", "20a18-10-31", "2019-10-31", "2020-10-31", "2021-10-31",
+           "2022-10-31", "2023-10-31")
+if (length(start) > length(end)) end <- c(end, tail(data$Occurrence_Date1, 1))
+## highlight region data
+rects <- data.frame(start=as.Date(start), end=as.Date(end), group=seq_along(start))
+
+data %>% filter(Occurrence_Date1 >= "2014-01-01") %>% 
+  ggplot(aes(x=Occurrence_Date1)) + geom_line(aes(fill=..count..), stat="bin", binwidth=10) +
+   theme_bw() + scale_x_continuous(breaks = c(
+     as.Date("2014-01-01"),
+     as.Date("2015-01-01"),
+     as.Date("2016-01-01"),
+     as.Date("2017-01-01"),
+     as.Date("2018-01-01"),
+     as.Date("2019-01-01"),
+     as.Date("2020-01-01"),
+     as.Date("2021-01-01"),
+     as.Date("2022-01-01"),
+     as.Date("2023-01-01"))
+     ) +  geom_rect(data=rects, inherit.aes=FALSE, aes(xmin=start, xmax=end, ymin=min(data$value),
+                ymax=max(data$value), group=group), color="transparent", fill="orange", alpha=0.3)+ 
+    theme(axis.text.x = element_text(angle=45, vjust=0.5))
+```
+
+Go by month.
+
+```{r}
+data$OCC_MONTH <- factor(data$OCC_MONTH, levels=c("January", "February", "March", "April", "June",
+                                                  "July", "August", "September", "October", "November", "December"))
+ggplot(data %>% filter(!is.na(OCC_MONTH)), aes(x=factor(OCC_MONTH)))+
+  geom_bar(stat="count", width=0.7, fill="steelblue")+
+  theme_minimal()
+```
+
+Check if type of premise matters.
+
+```{r}
+ggplot(data, aes(x=factor(PREMISES_TYPE)))+
+  geom_bar(stat="count", width=0.7, fill="steelblue")+
+  theme_minimal()
+```
+
+Check if the monthly (seasonal) pattern still holds within each premise type
+
+```{r}
+data <- data %>% mutate(OCC_MONTH1 = case_when(OCC_MONTH == "January" ~ "1",
+                                               OCC_MONTH == "February" ~ "2",
+                                               OCC_MONTH == "March" ~ "3",
+                                               OCC_MONTH == "April" ~ "4",
+                                               OCC_MONTH == "May" ~ "5",
+                                               OCC_MONTH == "June" ~ "6",
+                                               OCC_MONTH == "July" ~ "7",
+                                               OCC_MONTH == "August" ~ "8",
+                                               OCC_MONTH == "September" ~ "9",
+                                               OCC_MONTH == "October" ~ "10",
+                                               OCC_MONTH == "November" ~ "11",
+                                               OCC_MONTH == "December" ~ "12"),
+                        OCC_MONTH1 = factor(OCC_MONTH1, levels=c("1","2","3","4","5","6",
+                                                                 "7","8","9","10","11","12")))
+data %>% filter(!is.na(OCC_MONTH1)) %>%
+  ggplot(aes(x=(OCC_MONTH1), group=PREMISES_TYPE )) + 
+    geom_bar(stat="count") +
+    labs(fill="Status") +
+    facet_grid(~ PREMISES_TYPE) +
+    theme_bw() + 
+    theme(legend.position = "none", axis.text.x = element_text(size=5)) 
+```
+
+# Story 2
+
+```{r}
+data_cost <- data %>% group_by(BIKE_COST) %>% summarise(total = n())
+data_cost %>% ggplot(aes(x = BIKE_COST, y = total)) + geom_point() 
+data_cost %>% filter(BIKE_COST < 10000) %>% ggplot(aes(x = BIKE_COST, y = total)) + 
+  geom_point() + theme_bw()
+```
+
+```{r}
+summary(data$BIKE_COST)
+data <- data %>% mutate(cost_cat = case_when(
+  BIKE_COST <= 400 ~ "0-400",
+  (BIKE_COST > 400 & BIKE_COST <= 650) ~ "401-650",
+  (BIKE_COST > 650 & BIKE_COST <= 1200) ~ "651-1200",
+  BIKE_COST > 1200 ~ "1200+"
+)) 
+data$cost_cat <- factor(data$cost_cat, levels = c("0-400", "401-650", "651-1200", "1200+"))
+```
+
+```{r}
+data %>% filter(is.na(cost_cat) == F) %>% ggplot(aes(x=factor(cost_cat)))+
+  geom_bar(stat="count", width=0.7, fill="steelblue")+
+  theme_minimal()
+```
+
+```{r}
+data_cost_premise <- data %>% group_by(cost_cat, STATUS) %>% 
+  summarise(total = n())
+data_cost_premise %>% filter(is.na(cost_cat) == F) %>% 
+  ggplot(aes(x = cost_cat, y = total, fill = STATUS)) +
+  geom_bar(stat = "identity", position = "dodge") + theme_bw()
+```
+
+```{r}
+data_cost_premise.p <- data %>% group_by(cost_cat, BIKE_TYPE) %>% 
+  summarise(total = n())
+data_cost_premise_d <- data %>% group_by(BIKE_TYPE) %>% 
+  summarise(denom = n()) 
+data_cost_premise <- left_join(data_cost_premise.p, data_cost_premise_d, by = "BIKE_TYPE")
+data_cost_premise$prop <- data_cost_premise$total/data_cost_premise$denom
+
+data_cost_premise %>% filter(!is.na(cost_cat)) %>%
+  ggplot(aes(x = BIKE_TYPE, y = prop, fill = cost_cat)) +
+  geom_bar(stat = "identity", position = position_fill(reverse = TRUE), # display first level on the right
+           width = 0.7) +
+  geom_text(aes(label = scales::percent_format(accuracy = 1)(prop)), 
+            colour = "white", position = position_fill(vjust = 0.5, reverse = TRUE)) +
+  scale_y_continuous(expand = expansion(0, 0)) + # remove excess area
+  scale_x_discrete(limits = rev(unique(data_cost_premise.p$BIKE_TYPE))) + # reverse feature axis
+  scale_fill_discrete(guide = guide_legend(title = NULL)) + # remove legend title 
+  coord_flip() +
+  theme(legend.position = "top") + theme_bw()
+```
+
+```{R}
+data_cost_premise %>% filter(is.na(cost_cat) == F) %>% 
+  ggplot(aes(x = BIKE_TYPE, y = total, fill = cost_cat)) +
+  geom_bar(stat = "identity", position = "dodge") + theme_bw()
+```
+
+
+```{r}
+data_cost_premise <- data %>% group_by(cost_cat, PREMISES_TYPE) %>% 
+  summarise(total = n())
+data_cost_premise %>% filter(is.na(cost_cat) == F) %>% 
+  ggplot(aes(x = cost_cat, y = total, fill = PREMISES_TYPE)) +
+  geom_bar(stat = "identity", position = "dodge") + theme_bw()
+```
+
+```{r}
+data %>% filter(is.na(cost_cat) == F) %>% filter(!is.na(OCC_MONTH)) %>%
+  ggplot(aes(x=factor(cost_cat)), group=OCC_MONTH)+
+  geom_bar(stat="count", width=0.7, fill="steelblue")+
+  facet_grid(~ OCC_MONTH) +
+  theme_minimal() + 
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90, size = 6))
+```
+
+```{r}
+data %>% filter(is.na(PREMISES_TYPE) == F) %>% filter(!is.na(OCC_MONTH)) %>%
+  ggplot(aes(x=factor(PREMISES_TYPE)), group=OCC_MONTH)+
+  geom_bar(stat="count", width=0.7, fill="steelblue")+
+  facet_grid(~ OCC_MONTH) +
+  theme_minimal() + 
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90, size = 6))
+```
+
+# Story 3
+
+```{r}
+# install.packages(c("cowplot", "googleway", "ggplot2", "ggrepel", 
+# "ggspatial", "libwgeom", "sf", "rnaturalearth", "rnaturalearthdata"))
+```
+
+```{r}
+library("ggplot2")
+theme_set(theme_bw())
+library("sf")
+library("rnaturalearth")
+library("rnaturalearthdata")
+world <- ne_countries(scale = "medium", returnclass = "sf")
+```
+
+```{r}
+data <- data %>% mutate(free = ifelse(BIKE_COST == 0, "Free", "Not free"))
+data$free <- as.factor(data$free)
+data$Long <- data$LONG_WGS84
+data$Lat <- data$LAT_WGS84
+data1 <- data %>% filter(Long != 0) %>% filter(Lat != 0)
+ggplot(data = world) +
+    geom_sf() +
+    geom_point(data = data1 %>% filter(!is.na(free)), aes(x = Long, y = Lat), size = 0.01, fill = "blue3",
+        shape = 23) +
+    coord_sf(xlim = c(min(data1$Long), max(data1$Long)),
+             ylim = c(min(data1$Lat), max(data1$Lat)), expand = FALSE) + 
+    theme_bw() + theme(legend.position = "top")
+```
+
+```{r}
+ggplot(data = world) +
+    geom_sf(color = "black", fill = "black") +
+    geom_point(data = data1 %>% filter(!is.na(free)), aes(x = Long, y = Lat, fill = free, size = free), 
+        shape = 23) + scale_fill_manual(values = c("yellow", "cyan")) + 
+  scale_size_discrete(range = c(2, 0.5)) + 
+    coord_sf(xlim = c(min(data1$Long), max(data1$Long)),
+             ylim = c(min(data1$Lat), max(data1$Lat)), expand = FALSE) + 
+    theme_bw() + theme(legend.position = "top") 
+```
+
+```{r}
+data1 <- data1 %>% mutate(expen = ifelse(BIKE_COST > 5000, "Expensive", "Not expensive"))
+data1$expen <- as.factor(data1$expen)
+ggplot(data = world) +
+    geom_sf(color = "black", fill = "black") +
+    geom_point(data = data1 %>% filter(!is.na(expen)), aes(x = Long, y = Lat, fill = expen, size = expen), 
+        shape = 23) + scale_fill_manual(values = c("yellow", "cyan")) + 
+  scale_size_discrete(range = c(2, 0.5)) + 
+    coord_sf(xlim = c(min(data1$Long), max(data1$Long)),
+             ylim = c(min(data1$Lat), max(data1$Lat)), expand = FALSE) + 
+    theme_bw() + theme(legend.position = "top") 
+```
+
+```{r}
+ggplot(data = world) +
+    geom_sf(color = "black", fill = "black") +
+    geom_point(data = data1 %>% filter(OCC_YEAR >= 2014), aes(x = Long, y = Lat), fill = "green", size = 0.5, 
+        shape = 23) +
+    coord_sf(xlim = c(min(data1$Long), max(data1$Long)),
+             ylim = c(min(data1$Lat), max(data1$Lat)), expand = FALSE) + 
+    theme_minimal() + theme(legend.position = "top") + facet_wrap(~OCC_YEAR)
+```
+
+```{r}
+ggplot(data = world) +
+    geom_sf(color = "black", fill = "black") +
+    geom_point(data = data1 %>% filter(!is.na(OCC_MONTH)), aes(x = Long, y = Lat), fill = "green", size = 0.5, 
+        shape = 23) +
+    coord_sf(xlim = c(min(data1$Long), max(data1$Long)),
+             ylim = c(min(data1$Lat), max(data1$Lat)), expand = FALSE) + 
+    theme_minimal() + theme(legend.position = "top") + facet_wrap(~OCC_MONTH)
+```
+
+```{r}
+ggplot(data = world) +
+    geom_sf(color = "black", fill = "black") +
+    geom_point(data = data1 %>% filter(!is.na(cost_cat)), 
+               aes(x = Long, y = Lat), fill = "green", size = 0.5, shape = 23) +
+    labs(x = "", y = "") + 
+    coord_sf(xlim = c(min(data1$Long), max(data1$Long)),
+             ylim = c(min(data1$Lat), max(data1$Lat)), expand = FALSE) + 
+    theme_minimal() + theme(legend.position = "top") + facet_wrap(~cost_cat) 
+```
+
+
+# Alternative maps 1
+
+```{r}
+library(ggmap)
+register_stadiamaps(key = "YOUR-API-KEY") 
+qmplot(Long, Lat, data = data1 %>% filter(!is.na(expen)), colour = expen, size = I(1), darken = .3)
+```
+
+```{r}
+qmplot(Long, Lat, data = data1 %>% filter(!is.na(cost_cat)), colour = I("red"), size = I(0.5), darken = .3, facets = ~cost_cat)
+```
+
+# Alternative maps 2
+
+```{r}
+library(ggmap)
+ggmap::register_google(key = "", write = TRUE)
+```
+
+```{r}
+ggmap_toronto <- ggmap::get_googlemap('Toronto', zoom = 11)
+```
+
+```{r}
+ggmap(get_googlemap("Toronto", zoom = 11, 
+                    style = paste0("feature:all|element:labels|visibility:off"))) +
+    geom_point(data = data1, aes(Long, Lat), 
+               color = 'green',
+               size = 0.42,
+               alpha = 0.42)
+```
+
+```{r}
+ggmap(get_googlemap("Toronto", zoom = 11, 
+                    style = paste0("feature:all|element:labels|visibility:off"))) +
+    geom_point(data = data1, aes(Long, Lat), 
+               color = 'green',
+               size = 0.42,
+               alpha = 0.42)
+```
+
+```{r}
+ggmap(get_googlemap(center = c(lon = -79.39, lat = 43.72), zoom = 11, 
+                    style = paste0("feature:all|element:labels|visibility:off"))) +
+    geom_point(data = data1, aes(Long, Lat), 
+               color = 'green',
+               size = 0.42,
+               alpha = 0.42)  + 
+    facet_wrap(~OCC_MONTH)
+```
+
+
+```{r, out.width = "100%", fig.align = "center"}
+ggmap(get_googlemap(center = c(lon = -79.39, lat = 43.66), 
+                    zoom = 13,
+                    maptype = 'hybrid',
+                    style = paste0("feature:all|element:labels|visibility:off"))) +
+    stat_density2d(data = data1, 
+                   aes(Long, Lat, fill = ..level.., alpha = ..level..), 
+                   bins = 17, geom = 'polygon') +
+    scale_fill_gradient(low = "blue", high = "green", guide = "none") +
+    scale_alpha(guide = "none") +
+    labs(x = '', y = '', title = "Toronto Bike Thefts")
+```
+

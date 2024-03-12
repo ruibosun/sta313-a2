@@ -62,7 +62,7 @@ ggplot(bike_raw, aes(x = OCC_HOUR)) +
 
 
 
-## Plot 1 version 1
+## KEEP Plot 1 version 1
 ```{r}
 #| echo: false
 #| warning: false
@@ -182,7 +182,7 @@ ggmap(toronto_map) +
        color = "Number of Occurrences") +
   theme_minimal()
 ```
-
+# KEEP
 ```{r}
 # Load necessary libraries
 library(ggplot2)
@@ -212,7 +212,7 @@ ggplot(toronto_thefts_geo) +
   theme_minimal() +
   theme(legend.position = "right", panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 ```
-## plot 4: word cloud
+## KEEP plot 4: word cloud
 ```{r}
 library(wordcloud2) 
 
@@ -230,10 +230,41 @@ mo_info <- bike_raw %>%
 
 ```
 
+
 ```{r}
 
 wordcloud2(bike_info, size=1.2, color='random-light', backgroundColor = "white")
 wordcloud2(mo_info, size=1.2, color='random-light', backgroundColor = "white")
 ```
 
+## random plot (for interative plot)
+```{r}
+library(plotly)
+
+fig <- bike_raw %>%
+  group_by(BIKE_C, BIKE_COLOUR) %>%
+  summarise(Count = n(), .groups = 'drop') %>%
+  ggplot(aes(x = BIKE_TYPE, y = Count, color = BIKE_COLOUR)) +
+  geom_bar() +
+  labs(title = "Interactive View: Bike Thefts by Type and Color",
+       x = "Bike Type",
+       y = "Number of Thefts")
+
+ggplotly(fig)
+
+```
+
+## plot 5 (proportion with %)
+
+```{r}
+# data cleaning
+
+bike_p <- bike_raw %>% mutate(cost_level = case_when(
+  BIKE_COST <= 500 ~ "0-500",
+  (BIKE_COST > 500 & BIKE_COST <= 1000) ~ "501-1000",
+  (BIKE_COST > 1001 & BIKE_COST <= 1500) ~ "1001-1500",
+  BIKE_COST > 1501 ~ "1500+"
+)) 
+bike_p$cost_level <- factor(bike_p$cost_level, levels = c("0-500", "501-1000", "10001-1500", "1500+"))
+```
 
