@@ -1,13 +1,12 @@
 ---
 title: "CHANGE TITLE"
-author: 
-  - Ruibo Sun and Nixi Huang
+author: "Ruibo Sun and Nixi Huang"
 date: "`r Sys.time()`"
-date-format: "D MMMM YYYY"
-abstract: "ADD ABSTRACT"
+output: pdf_document
+abstract: ADD ABSTRACT
 format: pdf
 number-sections: true
-# bibliography: references.bib
+date-format: D MMMM YYYY
 ---
 
 ```{r}
@@ -192,65 +191,188 @@ library(dplyr)
 # Step 1: Load the geographic data
 toronto_neighborhoods <- st_read(file.path("input/toneighshape/Neighbourhoods v2_region.shp"))
 
-# Step 2: Aggregate bike theft data
-# Replace `neighborhood_name` with the actual column name from your bike data
-bike_thefts_agg <- bike_raw %>%
+# Step 2: Aggregate bike theft data to calculate the average occurrence over the years
+# Replace `neighborhood_name` and `year` with the actual column names from your bike data
+# Assume you have a column `YEAR` for the year of each theft
+bike_thefts_avg <- bike_raw %>%
+  group_by(NEIGHBOURHOOD_158, OCC_YEAR) %>%
+  summarise(count = n(), .groups = 'drop') %>%
   group_by(NEIGHBOURHOOD_158) %>%
-  summarise(count = n(), .groups = 'drop')
+  summarise(avg_count = mean(count), .groups = 'drop')
 
 # Step 3: Merge the geographic and theft data
 # Replace `NAME` with the neighborhood name column from the shapefile
-toronto_thefts_geo <- merge(toronto_neighborhoods, bike_thefts_agg, 
+toronto_thefts_geo <- merge(toronto_neighborhoods, bike_thefts_avg, 
                             by.x = "NAME", by.y = "NEIGHBOURHOOD_158")
 
-# Step 4: Create the map
+# Step 4: Create the map showing average occurrences
 ggplot(toronto_thefts_geo) +
-  geom_sf(aes(fill = count), color = "white", size = 0.2) +
+  geom_sf(aes(fill = avg_count), color = "white", size = 0.2) +
   scale_fill_gradient(low = "beige", high = "darkred") +  # Adjust color scale as needed
-  labs(title = "Bike Thefts in Toronto by Neighborhood", 
-       fill = "Number of Thefts") +
+  labs(title = "Average Bike Thefts in Toronto by Neighborhood", 
+       fill = "Avg. Number of Thefts \n each Year") +
   theme_minimal() +
   theme(legend.position = "right", panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 ```
-## KEEP plot 4: word cloud
+
 ```{r}
-library(wordcloud2) 
+# Step 2: Aggregate bike theft data
+# Replace `neighborhood_name` with the actual column name from your bike data
+neighbourhood_data <- read_csv("input/Neighbourhood_Crime_Rates_Open_Data.csv")
 
-bike_info<-bike_raw%>%select(BIKE_COLOUR,BIKE_COST,BIKE_MODEL, BIKE_TYPE)
- 
-bike_info <- bike_info %>%
-  group_by(BIKE_COLOUR) %>%
-  summarise(freq = n()) %>%
+average_bike_thefts <- neighbourhood_data %>%
+  # Select the HOOD_ID and BIKETHEFT columns
+  select(AREA_NAME, starts_with("BIKETHEFT_")) %>%
+  # Gather the year columns into key-value pairs
+  gather(key = "year", value = "bike_thefts", -AREA_NAME) %>%
+  # Extract the year from the column names
+  mutate(year = as.numeric(sub("BIKETHEFT_", "", year))) %>%
+  # Calculate the average thefts per neighborhood
+  group_by(AREA_NAME) %>%
+  summarise(average_bike_thefts = mean(bike_thefts, na.rm = TRUE)) %>%
   ungroup()
 
-mo_info <- bike_raw %>%
-  group_by(OCC_MONTH) %>%
-  summarise(freq = n()) %>%
-  ungroup()
+# Step 3: Merge the geographic and theft data
+# Replace `NAME` with the neighborhood name column from the shapefile
+toronto_thefts_rate <- merge(toronto_neighborhoods, average_bike_thefts, 
+                            by.x = "NAME", by.y = "AREA_NAME")
+
+# Step 4: Create the map
+ggplot(toronto_thefts_rate) +
+  geom_sf(aes(fill = average_bike_thefts), color = "white", size = 0.2) +
+  scale_fill_gradient(low = "beige", high = "darkblue") +  # Adjust color scale as needed
+  labs(title = "Bike Thefts Crime Rate in Toronto by Neighborhood", 
+       fill = "Number of crimes \n per 100,000 population \n each year") +
+  theme_minimal() +
+  theme(legend.position = "right", panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+```
+
+
+
+
+## KEEP prop plot
+```{r}
+# Assuming average_bike_thefts is your precomputed dataframe with average thefts by neighborhood
+# and it contains a 'neighborhood' column and an 'avg_theft' column.
+
+# First, identify the top 10 hotspots
+top_neighborhoods <- average_bike_thefts %>%
+  arrange(desc(average_bike_thefts)) %>%
+  top_n(5, average_bike_thefts)
+
+# Now, filter your main dataset to only include records from these hotspots
+# and calculate the proportion of thefts by premises type within these hotspots
+data_premise <- bike_raw %>%
+  filter(NEIGHBOURHOOD_158 %in% top_neighborhoods$AREA_NAME) %>% # Replace 'NEIGHBORHOOD' with the actual column name
+  group_by(PREMISES_TYPE) %>% # Replace 'PREMISE_TYPE' with the actual column name
+  count(HOTSPOT = NEIGHBOURHOOD_158) %>% # Count occurrences by premise type within each hotspot
+  ungroup() %>%
+  group_by(PREMISES_TYPE) %>%
+  mutate(total = sum(n)) %>%
+  ungroup() %>%
+  mutate(prop = n / total)
+
+# ... [earlier code for preparing the data] ...
+
+unique_hotspots <- unique(data_premise$HOTSPOT)
+
+# Create a named vector of colors for each hotspot
+my_colors <- setNames(c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"), unique_hotspots)
+
+# Now, create the plot using this color scheme
+ggplot(data_premise, aes(x = PREMISES_TYPE, y = prop, fill = HOTSPOT)) +
+  geom_bar(stat = "identity", position = position_fill(reverse = TRUE), width = 0.7) +
+  # geom_text(aes(label = scales::percent(prop, accuracy = 1)), 
+  #           position = position_fill(vjust = 0.5), size = 2.5, color = "white") +
+  coord_flip() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = my_colors) +
+  labs(x = "Premise Type", y = "Proportion of Thefts", fill = "Hotspot") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        legend.direction = "horizontal",
+        legend.box = "vertical",
+        text = element_text(size = 8),
+        axis.text.x = element_text(size = 6),
+        legend.text = element_text(size = 6)) +
+  guides(fill = guide_legend(nrow = 2))
+```
+
+## KEEP trend
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Then, prepare the data by counting thefts over time for these locations
+theft_trends <- bike_raw %>%
+  filter(NEIGHBOURHOOD_158 %in% top_neighborhoods$AREA_NAME) %>%
+  group_by(NEIGHBOURHOOD_158, OCC_YEAR) %>%
+  summarise(Thefts = n(), .groups = 'drop') %>%
+  arrange(NEIGHBOURHOOD_158, OCC_YEAR)
+
+custom_colors <- c("Yonge-Bay Corridor" = "#E69F00", "University" = "#56B4E9", 
+                   "Downtown Yonge East" = "#009E73", "Wellington Place" = "#CC79A7", 
+                   "Kensington-Chinatown" = "#0072B2")
+
+# Plotting the theft trends with custom colors
+ggplot(theft_trends, aes(x = OCC_YEAR, y = Thefts, group = NEIGHBOURHOOD_158, color = NEIGHBOURHOOD_158)) +
+  geom_line() +
+  scale_color_manual(values = custom_colors) +
+  scale_x_continuous(breaks = seq(min(theft_trends$OCC_YEAR), max(theft_trends$OCC_YEAR), by = 1)) +
+  scale_y_continuous(limits = c(floor(min(theft_trends$Thefts)/10)*10, ceiling(max(theft_trends$Thefts)/10)*10),
+                     breaks = seq(floor(min(theft_trends$Thefts)/10)*10, ceiling(max(theft_trends$Thefts)/10)*10, by = 50)) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+  labs(title = "Trend of Bike Thefts Over Time",
+       x = "Year",
+       y = "Number of Thefts",
+       color = "Location")
 
 ```
 
 
+
 ```{r}
+ library(dplyr)
+library(tidyr)
+library(knitr)
+library(kableExtra)
 
-wordcloud2(bike_info, size=1.2, color='random-light', backgroundColor = "white")
-wordcloud2(mo_info, size=1.2, color='random-light', backgroundColor = "white")
-```
+# Assuming bike_raw is already loaded into the workspace
+# And you've already created the 'Slot' column with case_when as previously discussed.
 
-## random plot (for interative plot)
-```{r}
-library(plotly)
-
-fig <- bike_raw %>%
-  group_by(BIKE_C, BIKE_COLOUR) %>%
+# Process the dataset to categorize hours into slots and summarize the count
+thefts_by_hour_day <- bike_raw %>%
+  mutate(OCC_HOUR = as.numeric(as.character(OCC_HOUR)), # Ensure OCC_HOUR is numeric
+         Slot = case_when(
+           OCC_HOUR >= 0 & OCC_HOUR < 6   ~ 'Night',      # From 12 AM to 5:59 AM
+           OCC_HOUR >= 6 & OCC_HOUR < 12  ~ 'Morning',    # From 6 AM to 11:59 AM
+           OCC_HOUR >= 12 & OCC_HOUR < 18 ~ 'Afternoon',  # From 12 PM to 5:59 PM
+           OCC_HOUR >= 18 & OCC_HOUR <= 23 ~ 'Evening',    # From 6 PM to 11:59 PM
+           TRUE ~ NA_character_ # Should not happen, but including for completeness
+         )) %>%
+  group_by(OCC_DOW, Slot) %>%
   summarise(Count = n(), .groups = 'drop') %>%
-  ggplot(aes(x = BIKE_TYPE, y = Count, color = BIKE_COLOUR)) +
-  geom_bar() +
-  labs(title = "Interactive View: Bike Thefts by Type and Color",
-       x = "Bike Type",
-       y = "Number of Thefts")
+  pivot_wider(names_from = Slot, values_from = Count, values_fill = list(Count = 0)) %>%
+  select(OCC_DOW, Night, Morning, Afternoon, Evening) # Reorder the columns
 
-ggplotly(fig)
+# Add totals for each day (row) and for each hour (column)
+thefts_by_hour_day <- thefts_by_hour_day %>%
+  rowwise() %>%
+  mutate(Total = sum(c_across(c(Night, Morning, Afternoon, Evening)), na.rm = TRUE))
+
+# Convert OCC_DOW to a character to avoid factor level issues when adding "Total"
+thefts_by_hour_day$OCC_DOW <- as.character(thefts_by_hour_day$OCC_DOW)
+
+# Arrange by day of the week 
+ordered_days <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+thefts_by_hour_day$OCC_DOW <- factor(thefts_by_hour_day$OCC_DOW, levels = ordered_days)
+thefts_by_hour_day <- arrange(thefts_by_hour_day, OCC_DOW) %>% select(-Total)
+
+# Create the table with knitr
+kable(thefts_by_hour_day, caption = "Bicycle Thefts by Time Slot and Day of Week", align = 'c') %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
 
 ```
 

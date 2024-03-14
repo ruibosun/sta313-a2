@@ -234,12 +234,12 @@ data %>% filter(is.na(PREMISES_TYPE) == F) %>% filter(!is.na(OCC_MONTH)) %>%
 # Story 3
 
 ```{r}
-# install.packages(c("cowplot", "googleway", "ggplot2", "ggrepel", 
-# "ggspatial", "libwgeom", "sf", "rnaturalearth", "rnaturalearthdata"))
+install.packages(c("cowplot", "googleway", "ggplot2", "ggrepel",
+"ggspatial", "libwgeom", "sf", "rnaturalearth", "rnaturalearthdata"))
 ```
 
 ```{r}
-library("ggplot2")
+#library("ggplot2")
 theme_set(theme_bw())
 library("sf")
 library("rnaturalearth")
