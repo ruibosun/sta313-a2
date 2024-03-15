@@ -320,14 +320,22 @@ if("0" %in% levels(hour_plot$OCC_HOUR)) {
 
 ```{r}
 # Use scale_x_discrete() to include all factor levels
+hour_plot <- hour_plot %>%
+  mutate(season = if_else(OCC_MONTH %in% c("December", "January", "February", "March", "April", "November"), 'Cold', 'Warm'))
 
 degrees_to_rotate <- 8
 radians_to_rotate <- degrees_to_rotate * (pi / 180)
 
-ggplot(hour_plot, aes(x = OCC_HOUR, fill = OCC_DOW)) +
+ggplot(hour_plot, aes(x = OCC_HOUR, fill=season)) +
   geom_bar() +
   scale_x_discrete(drop = FALSE) + # Include all levels, even if some have no data
-  coord_polar(start = 0 - radians_to_rotate)
+  coord_polar(start = 0 - radians_to_rotate)+
+  theme_minimal()+
+  theme(
+    axis.text.y = element_blank(),  # This will remove the radial axis labels
+    panel.grid.major.y = element_blank(),  # This will remove the major grid lines (optional)
+    panel.grid.minor.y = element_blank()  # This will remove the minor grid lines (optional)
+  )
 
 ```
 
