@@ -19,6 +19,7 @@ library(tidyverse)
 library(dplyr)
 library(readr)
 library(ggmap)
+library(sf)
 ```
 
 
@@ -29,109 +30,18 @@ library(ggmap)
 
 # import data
 
-bike_raw <- read_csv("input/Bicycle_Thefts_Open_Data.csv")
-```
+bike_raw_raw <- read_csv("input/Bicycle_Thefts_Open_Data.csv")
+neighbourhood_data <- read_csv("input/Neighbourhood_Crime_Rates_Open_Data.csv")
+# lane <- read_csv("input/cycling-network - 4326.csv")
 
-## add-up to plot1
-```{r}
-#| echo: false
-#| warning: false
-#| message: false
-
-bike_counts <- bike_raw %>%
-  group_by(OCC_HOUR) %>%
-  summarise(count = n()) %>%
-  arrange(desc(count))
-
-# Identify top 3 hours
-top_hours <- head(bike_counts, 5)
-
-# Create the plot
-ggplot(bike_raw, aes(x = OCC_HOUR)) +
-  geom_bar(stat = "count", fill="darkgrey") +
-  geom_text(data = top_hours, aes(x = OCC_HOUR, y = count, label = count),
-            position = position_dodge(width = 0.5), vjust = -0.35, color = "black",size=3.1) +
-  labs(title = "Number of Offenses Based on Hours", 
-       x = "Hour of Occurrence", 
-       y = "Number of Offenses") +
-  theme_minimal() +
-  theme(panel.background = element_blank(),)+
-  scale_x_continuous(breaks = seq(0, 23, by = 1))
-```
-
-
-
-## KEEP Plot 1 version 1
-```{r}
-#| echo: false
-#| warning: false
-#| message: false
-
-# Convert OCC_DOW to an ordered factor
-bike_raw$OCC_DOW <- factor(bike_raw$OCC_DOW, 
-                           levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
-
-# Create the plot
-ggplot(bike_raw, aes(x = OCC_HOUR, fill = OCC_DOW)) +
-  geom_bar(stat = "count") + 
-  labs(title = "Number of Offenses Based on Hours", 
-       x = "Hour of Occurrence", 
-       y = "Number of Offenses") +
-  theme_minimal() +
-  facet_wrap(~OCC_DOW, scales = "free_y", nrow = 4) +
-  scale_fill_manual(values = c("Monday" = "lightpink", 
-                               "Tuesday" = "lightblue", 
-                               "Wednesday" = "lightgreen", 
-                               "Thursday" = "red", 
-                               "Friday" = "blue",
-                               "Saturday" = "purple",
-                               "Sunday" = "orange")) +
-  theme(strip.background = element_rect(fill = "lightpink"),
-        strip.text = element_text(color = "black"), legend.position="none",panel.grid.major = element_blank(), panel.grid.minor = element_blank())
-
-```
-
-## plot 1 version2
-```{r}
-#| echo: false
-#| warning: false
-#| message: false
-# Convert OCC_DOW to an ordered factor
-bike_raw$OCC_DOW <- factor(bike_raw$OCC_DOW, 
-                           levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
-
-# Create the plot with overlapping bars
-ggplot(bike_raw, aes(x = OCC_HOUR, fill = OCC_DOW)) +
-  geom_bar(stat = "count", position = "identity", alpha = 0.5) +  # Overlapping bars with transparency
-  labs(title = "Number of Offenses Based on Hours", 
-       x = "Hour of Occurrence", 
-       y = "Number of Offenses") +
-  theme_minimal() +
-  scale_fill_manual(values = c("Monday" = "lightpink", 
-                               "Tuesday" = "lightblue", 
-                               "Wednesday" = "lightgreen", 
-                               "Thursday" = "red", 
-                               "Friday" = "blue",
-                               "Saturday" = "purple",
-                               "Sunday" = "orange")) +
-  theme(legend.position = "right",panel.grid.major = element_blank(), panel.grid.minor = element_blank())  # Adjust legend position if needed
-
-```
-
-## plot 2
-
-```{r}
-# data cleaning for plot 2
-#| include: false
-#| warning: false
-#| message: false
+# data cleaning
+bike_raw <- bike_raw_raw %>% filter(OCC_YEAR>2013)
 
 bike_raw$y_n <- ifelse(bike_raw$STATUS =='RECOVERED','Yes','NO')
-
 ```
 
-```{r}
 
+```{r}
 #| echo: false
 #| warning: false
 #| message: false
@@ -158,7 +68,6 @@ ggplot(yearly_counts, aes(x = OCC_YEAR, y = count, color = y_n)) +
 
 ```
 
-## plot 3: the map!!
 ```{r}
 register_stadiamaps(key = "ddfcfc93-13e6-497f-8336-c5fdd043f311")
 
@@ -181,6 +90,7 @@ ggmap(toronto_map) +
        color = "Number of Occurrences") +
   theme_minimal()
 ```
+
 # KEEP
 ```{r}
 # Load necessary libraries
@@ -284,7 +194,6 @@ ggplot(data_premise, aes(x = PREMISES_TYPE, y = prop, fill = HOTSPOT)) +
   geom_bar(stat = "identity", position = position_fill(reverse = TRUE), width = 0.7) +
   # geom_text(aes(label = scales::percent(prop, accuracy = 1)), 
   #           position = position_fill(vjust = 0.5), size = 2.5, color = "white") +
-  coord_flip() +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   scale_fill_manual(values = my_colors) +
   labs(x = "Premise Type", y = "Proportion of Thefts", fill = "Hotspot") +
@@ -332,53 +241,10 @@ ggplot(theft_trends, aes(x = OCC_YEAR, y = Thefts, group = NEIGHBOURHOOD_158, co
 ```
 
 
-
 ```{r}
- library(dplyr)
-library(tidyr)
-library(knitr)
-library(kableExtra)
-
-# Assuming bike_raw is already loaded into the workspace
-# And you've already created the 'Slot' column with case_when as previously discussed.
-
-# Process the dataset to categorize hours into slots and summarize the count
-thefts_by_hour_day <- bike_raw %>%
-  mutate(OCC_HOUR = as.numeric(as.character(OCC_HOUR)), # Ensure OCC_HOUR is numeric
-         Slot = case_when(
-           OCC_HOUR >= 0 & OCC_HOUR < 6   ~ 'Night',      # From 12 AM to 5:59 AM
-           OCC_HOUR >= 6 & OCC_HOUR < 12  ~ 'Morning',    # From 6 AM to 11:59 AM
-           OCC_HOUR >= 12 & OCC_HOUR < 18 ~ 'Afternoon',  # From 12 PM to 5:59 PM
-           OCC_HOUR >= 18 & OCC_HOUR <= 23 ~ 'Evening',    # From 6 PM to 11:59 PM
-           TRUE ~ NA_character_ # Should not happen, but including for completeness
-         )) %>%
-  group_by(OCC_DOW, Slot) %>%
-  summarise(Count = n(), .groups = 'drop') %>%
-  pivot_wider(names_from = Slot, values_from = Count, values_fill = list(Count = 0)) %>%
-  select(OCC_DOW, Night, Morning, Afternoon, Evening) # Reorder the columns
-
-# Add totals for each day (row) and for each hour (column)
-thefts_by_hour_day <- thefts_by_hour_day %>%
-  rowwise() %>%
-  mutate(Total = sum(c_across(c(Night, Morning, Afternoon, Evening)), na.rm = TRUE))
-
-# Convert OCC_DOW to a character to avoid factor level issues when adding "Total"
-thefts_by_hour_day$OCC_DOW <- as.character(thefts_by_hour_day$OCC_DOW)
-
-# Arrange by day of the week 
-ordered_days <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
-thefts_by_hour_day$OCC_DOW <- factor(thefts_by_hour_day$OCC_DOW, levels = ordered_days)
-thefts_by_hour_day <- arrange(thefts_by_hour_day, OCC_DOW) %>% select(-Total)
-
-# Create the table with knitr
-kable(thefts_by_hour_day, caption = "Bicycle Thefts by Time Slot and Day of Week", align = 'c') %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
-
-```
-
-## plot 5 (proportion with %)
-
-```{r}
+#| include: false
+#| warning: false
+#| message: false
 # data cleaning
 
 bike_p <- bike_raw %>% mutate(cost_level = case_when(
@@ -389,4 +255,82 @@ bike_p <- bike_raw %>% mutate(cost_level = case_when(
 )) 
 bike_p$cost_level <- factor(bike_p$cost_level, levels = c("0-500", "501-1000", "10001-1500", "1500+"))
 ```
+
+
+```{r}
+# data cleaning
+
+bike_p <- bike_raw %>%
+  mutate(cost_level = case_when(
+    BIKE_COST >= 1000 ~ "Expensive",
+    BIKE_COST < 1000 ~ "Affordable"
+  ))
+
+bike_p$cost_level <- factor(bike_p$cost_level, levels = c("Affordable", "Expensive"))
+```
+
+
+
+
+# THE PLOT of COST
+```{r}
+
+# First, classify areas based on theft rate threshold
+threshold <- median(average_bike_thefts$average_bike_thefts)  
+
+average_bike_thefts <- average_bike_thefts %>%
+  mutate(Theft_Level = if_else(average_bike_thefts >= threshold, "High Theft Rate", "Low Theft Rate")) %>% rename('NEIGHBOURHOOD_158'='AREA_NAME')
+
+
+
+average_bike_cost <- bike_raw %>%
+  group_by(NEIGHBOURHOOD_158) %>%  # Replace with the correct neighborhood column name
+  summarise(Average_Bike_Cost = mean(BIKE_COST, na.rm = TRUE))
+
+
+combined_data <- average_bike_thefts %>%
+  left_join(average_bike_cost, by = 'NEIGHBOURHOOD_158') 
+
+# Now, plot the density of bike costs for high-theft-rate areas versus low-theft-rate areas
+ggplot(combined_data, aes(x = Average_Bike_Cost, fill = Theft_Level)) +
+  geom_density(alpha = 0.5) +  # Set transparency to see overlapping areas
+  scale_fill_manual(values = c("High Theft Rate" = "red", "Low Theft Rate" = "blue")) +
+  labs(title = "Density of Bike Costs in High vs. Low Theft Rate Areas",
+       x = "Average Bike Cost ($)",
+       y = "Density",
+       fill = "Theft Rate Level") +
+  theme_minimal() +
+  theme(legend.position = "right")
+
+```
+
+
+
+# after the cost, hotpsot vs hours of a day
+
+```{r}
+hour_plot <- left_join(bike_raw, average_bike_thefts, by = 'NEIGHBOURHOOD_158')
+
+hour_plot$OCC_HOUR <- as.factor(hour_plot$OCC_HOUR)
+if("0" %in% levels(hour_plot$OCC_HOUR)) {
+  levels(hour_plot$OCC_HOUR)[levels(hour_plot$OCC_HOUR) == "0"] <- "0/24"
+}
+
+```
+
+```{r}
+# Use scale_x_discrete() to include all factor levels
+
+degrees_to_rotate <- 8
+radians_to_rotate <- degrees_to_rotate * (pi / 180)
+
+ggplot(hour_plot, aes(x = OCC_HOUR, fill = OCC_DOW)) +
+  geom_bar() +
+  scale_x_discrete(drop = FALSE) + # Include all levels, even if some have no data
+  coord_polar(start = 0 - radians_to_rotate)
+
+```
+
+
+
 

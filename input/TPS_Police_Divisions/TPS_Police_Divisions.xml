@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?><MD_Metadata xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:xalan="http://xml.apache.org/xalan" xmlns:srv="http://www.isotc211.org/2005/srv" xmlns:gmx="http://www.isotc211.org/2005/gmx" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml" xmlns="http://www.isotc211.org/2005/gmd">
+    <language>
+        <LanguageCode codeList="http://www.loc.gov/standards/iso639-2/php/code_list.php" codeListValue="eng" codeSpace="ISO639-2">eng</LanguageCode>
+    </language>
+    <characterSet>
+        <MD_CharacterSetCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_CharacterSetCode" codeListValue="utf8" codeSpace="ISOTC211/19115">utf8</MD_CharacterSetCode>
+    </characterSet>
+    <hierarchyLevel>
+        <MD_ScopeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset" codeSpace="ISOTC211/19115">dataset</MD_ScopeCode>
+    </hierarchyLevel>
+    <hierarchyLevelName>
+        <gco:CharacterString>dataset</gco:CharacterString>
+    </hierarchyLevelName>
+    <contact gco:nilReason="missing"/>
+    <dateStamp>
+        <gco:Date>2022-04-07</gco:Date>
+    </dateStamp>
+    <metadataStandardName>
+        <gco:CharacterString>ISO 19139 Geographic Information - Metadata - Implementation Specification</gco:CharacterString>
+    </metadataStandardName>
+    <metadataStandardVersion>
+        <gco:CharacterString>2007</gco:CharacterString>
+    </metadataStandardVersion>
+    <spatialRepresentationInfo>
+        <MD_VectorSpatialRepresentation>
+            <topologyLevel>
+                <MD_TopologyLevelCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_TopologyLevelCode" codeListValue="geometryOnly" codeSpace="ISOTC211/19115">geometryOnly</MD_TopologyLevelCode>
+            </topologyLevel>
+            <geometricObjects>
+                <MD_GeometricObjects>
+                    <geometricObjectType>
+                        <MD_GeometricObjectTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_GeometricObjectTypeCode" codeListValue="composite" codeSpace="ISOTC211/19115">composite</MD_GeometricObjectTypeCode>
+                    </geometricObjectType>
+                </MD_GeometricObjects>
+            </geometricObjects>
+        </MD_VectorSpatialRepresentation>
+    </spatialRepresentationInfo>
+    <referenceSystemInfo>
+        <MD_ReferenceSystem>
+            <referenceSystemIdentifier>
+                <RS_Identifier>
+                    <code>
+                        <gco:CharacterString>3857</gco:CharacterString>
+                    </code>
+                    <codeSpace>
+                        <gco:CharacterString>EPSG</gco:CharacterString>
+                    </codeSpace>
+                    <version>
+                        <gco:CharacterString>6.18.3(9.3.1.2)</gco:CharacterString>
+                    </version>
+                </RS_Identifier>
+            </referenceSystemIdentifier>
+        </MD_ReferenceSystem>
+    </referenceSystemInfo>
+    <identificationInfo>
+        <MD_DataIdentification>
+            <citation>
+                <CI_Citation>
+                    <title>
+                        <gco:CharacterString>TPS_POLICE_DIVISIONS</gco:CharacterString>
+                    </title>
+                    <date gco:nilReason="missing"/>
+                    <presentationForm>
+                        <CI_PresentationFormCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_PresentationFormCode" codeListValue="mapDigital" codeSpace="ISOTC211/19115">mapDigital</CI_PresentationFormCode>
+                    </presentationForm>
+                </CI_Citation>
+            </citation>
+            <abstract>
+                <gco:CharacterString>The source data are delivered as MTM 17 NAD83 CSRS.Toronto Police Service reprojected the data from MTM 17 NAD83 CSRS to Geographic NAD83 CSRS for maintenance and the published to ArcGIS Online as WGS84 Auxiliary Sphere for Public Safety Data Portal usage.</gco:CharacterString>
+            </abstract>
+            <purpose>
+                <gco:CharacterString>Toronto Police Service 16 Divisions Boundary. This feature service is part of the City of Toronto's data delivery.</gco:CharacterString>
+            </purpose>
+            <descriptiveKeywords>
+                <MD_Keywords>
+                    <keyword>
+                        <gco:CharacterString>City of Toronto</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Toronto</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Open Data</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Feature Class</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Update</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Data Load</gco:CharacterString>
+                    </keyword>
+                </MD_Keywords>
+            </descriptiveKeywords>
+            <descriptiveKeywords>
+                <MD_Keywords>
+                    <keyword>
+                        <gco:CharacterString>City of Toronto</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Toronto</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Open Data</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Feature Class</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Update</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Data Load</gco:CharacterString>
+                    </keyword>
+                </MD_Keywords>
+            </descriptiveKeywords>
+            <descriptiveKeywords>
+                <MD_Keywords>
+                    <keyword>
+                        <gco:CharacterString>City of Toronto</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Toronto</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Open Data</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Feature Class</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Update</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Data Load</gco:CharacterString>
+                    </keyword>
+                </MD_Keywords>
+            </descriptiveKeywords>
+            <descriptiveKeywords>
+                <MD_Keywords>
+                    <keyword>
+                        <gco:CharacterString>City of Toronto</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Toronto</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Open Data</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Feature Class</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Update</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Data Load</gco:CharacterString>
+                    </keyword>
+                </MD_Keywords>
+            </descriptiveKeywords>
+            <descriptiveKeywords>
+                <MD_Keywords>
+                    <keyword>
+                        <gco:CharacterString>City of Toronto</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Toronto</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Open Data</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Feature Class</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Update</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Data Load</gco:CharacterString>
+                    </keyword>
+                </MD_Keywords>
+            </descriptiveKeywords>
+            <descriptiveKeywords>
+                <MD_Keywords>
+                    <keyword>
+                        <gco:CharacterString>City of Toronto</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Toronto</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Open Data</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Feature Class</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Update</gco:CharacterString>
+                    </keyword>
+                    <keyword>
+                        <gco:CharacterString>Data Load</gco:CharacterString>
+                    </keyword>
+                </MD_Keywords>
+            </descriptiveKeywords>
+            <resourceConstraints>
+                <MD_Constraints>
+                    <useLimitation>
+                        <gco:CharacterString>Open Government Licence – OntarioYou are encouraged to use the Information that is available under this licence with only a few conditions.Using Information under this licenceUse of any Information indicates your acceptance of the terms below.The Information Provider grants you a worldwide, royalty-free, perpetual, non-exclusive licence to use the Information, including for commercial purposes, subject to the terms below.You are free to:Copy, modify, publish, translate, adapt, distribute or otherwise use the Information in any medium, mode or format for any lawful purpose.You must, where you do any of the above:Acknowledge the source of the Information by including any attribution statement specified by the Information Provider(s) and, where possible, provide a link to this licence.If the Information Provider does not provide a specific attribution statement, or if you are using Information from several Information Providers and multiple attributions are not practical for your product or application, you must use the following attribution statement:Contains information licensed under the Open Government Licence – Ontario.The terms of this licence are important, and if you fail to comply with any of them, the rights granted to you under this licence, or any similar licence granted by the Information Provider, will end automatically.ExemptionsThis licence does not grant you any right to use:Personal Information;Information or Records not accessible under the Freedom of Information and Protection of Privacy Act (Ontario);third party rights the Information Provider is not authorized to license;the names, crests, logos, or other official symbols of the Information Provider; andInformation subject to other intellectual property rights, including patents, trade-marks and official marks.Non-endorsementThis licence does not grant you any right to use the Information in a way that suggests any official status or that the Information Provider endorses you or your use of the Information.No warrantyThe Information is licensed &amp;quot;as is&amp;quot;, and the Information Provider excludes all representations, warranties, obligations, and liabilities, whether express or implied, to the maximum extent permitted by law.The Information Provider is not liable for any errors or omissions in the Information, and will not under any circumstances be liable for any direct, indirect, special, incidental, consequential, or other loss, injury or damage caused by its use or otherwise arising in connection with this licence or the Information, even if specifically advised of the possibility of such loss, injury or damage.Governing LawThis licence is governed by the laws of the Province of Ontario and the applicable laws of Canada. Legal proceedings related to this licence may only be brought in the courts of Ontario.DefinitionsIn this licence, the terms below have the following meanings:&amp;quot;Information&amp;quot;means information resources or Records protected by copyright or other information or Records that are offered for use under the terms of this licence.&amp;quot;Information Provider&amp;quot;means Her Majesty the Queen in right of Ontario.&amp;quot;Personal Information&amp;quot;has the meaning set out in section 2(1) of Freedom of Information and Protection of Privacy Act (Ontario).&amp;quot;Records&amp;quot;has the meaning of &amp;quot;record&amp;quot; as set out in the Freedom of Information and Protection of Privacy Act (Ontario).&amp;quot;You&amp;quot;means the natural or legal person, or body of persons corporate or incorporate, acquiring rights under this licence.VersioningThis is version 1.0 of the Open Government Licence – Ontario. The Information Provider may make changes to the terms of this licence from time to time and issue a new version of the licence. Your use of the Information will be governed by the terms of the licence in force as of the date you accessed the information.Updated: September 14, 2016Published: June 18, 2013</gco:CharacterString>
+                    </useLimitation>
+                </MD_Constraints>
+            </resourceConstraints>
+            <spatialRepresentationType>
+                <MD_SpatialRepresentationTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_SpatialRepresentationTypeCode" codeListValue="vector" codeSpace="ISOTC211/19115">vector</MD_SpatialRepresentationTypeCode>
+            </spatialRepresentationType>
+            <language>
+                <LanguageCode codeList="http://www.loc.gov/standards/iso639-2/php/code_list.php" codeListValue="eng" codeSpace="ISO639-2">eng</LanguageCode>
+            </language>
+            <characterSet>
+                <MD_CharacterSetCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_CharacterSetCode" codeListValue="utf8" codeSpace="ISOTC211/19115">utf8</MD_CharacterSetCode>
+            </characterSet>
+            <environmentDescription>
+                <gco:CharacterString>Esri ArcGIS 12.8.3.29751</gco:CharacterString>
+            </environmentDescription>
+        </MD_DataIdentification>
+    </identificationInfo>
+    <distributionInfo>
+        <MD_Distribution>
+            <distributionFormat>
+                <MD_Format>
+                    <name>
+                        <gco:CharacterString>File Geodatabase Feature Class</gco:CharacterString>
+                    </name>
+                    <version gco:nilReason="missing"/>
+                </MD_Format>
+            </distributionFormat>
+        </MD_Distribution>
+    </distributionInfo>
+</MD_Metadata>
