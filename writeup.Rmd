@@ -205,12 +205,16 @@ ggmap(toronto_map) +
   theme_minimal()
 ```
 
-# Sub-question 1: Where do the highest numbers of bike thefts occur in Toronto?
+## Sub-question 1: Where do the highest numbers of bike thefts occur in Toronto?
 
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
+#| label: fig-map1
+#| fig-cap: Average Bike Thefts in Toronto by Neighborhood
+#| fig-width: 8
+#| fig-height: 4
 
 
 bike_thefts_avg <- bike_raw %>%
@@ -226,8 +230,8 @@ toronto_thefts_geo <- merge(toronto_neighborhoods, bike_thefts_avg,
 ggplot(toronto_thefts_geo) +
   geom_sf(aes(fill = avg_count), color = "white", size = 0.2) +
   scale_fill_gradient(low = "beige", high = "darkred") +  # Adjust color scale as needed
-  labs(title = "Average Bike Thefts in Toronto by Neighborhood", 
-       fill = "Avg. Number of Thefts \n each Year") +
+  labs( 
+       fill = "Average number of thefts \n each year") +
   theme_minimal() +
   theme(legend.position = "right", panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 ```
@@ -236,23 +240,32 @@ ggplot(toronto_thefts_geo) +
 #| echo: false
 #| warning: false
 #| message: false
+#| label: fig-map2
+#| fig-cap: Bike Thefts Crime Rate in Toronto by Neighborhood
+#| fig-width: 8
+#| fig-height: 4
 
 
 ggplot(toronto_thefts_rate) +
   geom_sf(aes(fill = average_bike_thefts), color = "white", size = 0.2) +
+  geom_sf(data = shape, color = "darkred", size = 0.5, inherit.aes = FALSE, alpha = 0.4) +
   scale_fill_gradient(low = "beige", high = "darkblue") +  # Adjust color scale as needed
-  labs(title = "Bike Thefts Crime Rate in Toronto by Neighborhood", 
+  labs(
        fill = "Number of crimes \n per 100,000 population \n each year") +
   theme_minimal() +
   theme(legend.position = "right", panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 ```
 
-# Sub-question 2: Are there any time trends in bike thefts in these high-risk areas?
+## Sub-question 2: Are there any time trends in bike thefts in these high-risk areas?
 
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
+#| label: fig-top5
+#| fig-cap: Trend of Bike Thefts Over Time in the Top 5 Hotspots
+#| fig-width: 8
+#| fig-height: 4
 
 theft_trends <- bike_raw %>%
   filter(NEIGHBOURHOOD_158 %in% top_neighborhoods$NEIGHBOURHOOD_158) %>%
@@ -283,19 +296,23 @@ ggplot(theft_trends, aes(x = OCC_YEAR, y = Thefts, group = NEIGHBOURHOOD_158, co
                      breaks = seq(floor(min(theft_trends$Thefts)/10)*10, ceiling(max(theft_trends$Thefts)/10)*10, by = 50)) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
-  labs(title = "Trend of Bike Thefts Over Time",
+  labs(
        x = "Year",
        y = "Number of Thefts",
        color = "Location")
 
 ```
 
-# Sub-question 3: How do patterns of bike thefts in Toronto vary between Private Spaces and Public Access Areas throughout the day in Toronto?
+## Sub-question 3: How do patterns of bike thefts in Toronto vary between Private Spaces and Public Access Areas throughout the day in Toronto?
 
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
+#| label: fig-clock
+#| fig-cap: Bike Theft Trends by Hour (Private vs. Public Spaces)
+#| fig-width: 8
+#| fig-height: 4
 
 hour_plot <- hour_plot %>%
   mutate(season = if_else(OCC_MONTH %in% c("December", "January", "February", "March", "April", "November"), 'Cold', 'Warm'))
@@ -316,12 +333,16 @@ ggplot(hour_plot, aes(x = OCC_HOUR, fill=`Premises Type`)) +
     axis.title.y = element_blank())
 ```
 
-# Sub-question 4: How does the type of area (residential, commercial, industrial) influence bike theft rates?
+## Sub-question 4: How does the type of area (residential, commercial, industrial) influence bike theft rates?
 
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
+#| label: fig-prop
+#| fig-cap: Proportional Distribution of Bike Thefts Across Premises Types in Toronto Top 5 Hotspots
+#| fig-width: 8
+#| fig-height: 4
 
 
 my_colors <- setNames(c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"), unique_hotspots)
@@ -344,17 +365,21 @@ ggplot(data_premise, aes(x = PREMISES_TYPE, y = prop, fill = HOTSPOT)) +
   guides(fill = guide_legend(nrow = 2))
 ```
 
-# Sub-question 5: What are the cost profiles of bicycles stolen in Toronto?
+## Sub-question 5: What are the cost profiles of bicycles stolen in Toronto?
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
+#| label: fig-cost
+#| fig-cap: Comparative Density of Bicycle Costs in Areas with High and Low Theft Rates
+#| fig-width: 8
+#| fig-height: 4
 
 
 ggplot(combined_data, aes(x = Average_Bike_Cost, fill = Theft_Level)) +
   geom_density(alpha = 0.5) +  # Set transparency to see overlapping areas
   scale_fill_manual(values = c("High Theft Rate" = "red", "Low Theft Rate" = "blue")) +
-  labs(title = "Density of Bike Costs in High vs. Low Theft Rate Areas",
+  labs(
        x = "Average Bike Cost ($)",
        y = "Density",
        fill = "Theft Rate Level") +
@@ -397,16 +422,4 @@ bike_p$cost_level <- factor(bike_p$cost_level, levels = c("Affordable", "Expensi
 ```
 
 
-
-# bike lane
-```{r}
-#| echo: false
-#| warning: false
-#| message: false
-
-ggplot(data = shape) +
-  geom_sf() +
-  theme_minimal()+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
-```
 
