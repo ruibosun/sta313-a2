@@ -135,7 +135,7 @@ data_premise <- bike_raw %>%
   ungroup() %>%
   mutate(prop = n / total)
 
-unique_hotspots <- unique(data_premise$HOTSPOT)
+unique_pre <- unique(data_premise$PREMISES_TYPE)
 
 ```
 
@@ -241,20 +241,39 @@ ggplot(toronto_thefts_geo) +
 #| warning: false
 #| message: false
 #| label: fig-map2
-#| fig-cap: Bike Thefts Crime Rate in Toronto by Neighborhood
+#| fig-cap: Bike Thefts Crime Rate and Bike Lanes in Toronto by Neighborhood
 #| fig-width: 8
 #| fig-height: 4
 
 
 ggplot(toronto_thefts_rate) +
-  geom_sf(aes(fill = average_bike_thefts), color = "white", size = 0.2) +
-  geom_sf(data = shape, color = "darkred", size = 0.5, inherit.aes = FALSE, alpha = 0.4) +
-  scale_fill_gradient(low = "beige", high = "darkblue") +  # Adjust color scale as needed
+  geom_sf(aes(fill = average_bike_thefts), color = "white", size = 0.8) +
+  geom_sf(data = shape, color = "black", size = 2, inherit.aes = FALSE, alpha = 0.3) +
+  scale_fill_gradient(low = "beige", high = "#8D021F") +  # Adjust color scale as needed
   labs(
-       fill = "Number of crimes \n per 100,000 population \n each year") +
+       fill = " Number of \n bike thefts crimes \n per 100,000 \n population each year") +
   theme_minimal() +
   theme(legend.position = "right", panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 ```
+```{r}
+ggplot(toronto_thefts_rate) +
+  geom_sf(aes(fill = average_bike_thefts), color = "white", size = 0.2) +  # Reduced border size
+  geom_sf(data = shape, color = "black", size = 0.5, inherit.aes = FALSE, alpha = 0.3) +  # Reduced border size and transparency
+  scale_fill_gradient(low = "beige", high = "#8D021F", 
+                      breaks = c(100, 200, 400, 600), 
+                      labels = c("Low", "Moderate", "High", "Very High")) +  # More descriptive breaks
+  labs(
+    fill = "Average Number of \n crimes per 100,000 \n population each year"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "right", 
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank())  # Adjusting margin if needed
+  
+
+```
+
 
 ## Sub-question 2: Are there any time trends in bike thefts in these high-risk areas?
 
@@ -320,17 +339,21 @@ hour_plot <- hour_plot %>%
 degrees_to_rotate <- 8
 radians_to_rotate <- degrees_to_rotate * (pi / 180)
 
-ggplot(hour_plot, aes(x = OCC_HOUR, fill=`Premises Type`)) +
+premises_type_colors <- c('Private Spaces' = '#2E86C1', 'Public Access Areas' = '#1ABC9C')
+
+ggplot(hour_plot, aes(x = OCC_HOUR, fill = `Premises Type`)) +
   geom_bar() +
   scale_x_discrete(drop = FALSE) + # Include all levels, even if some have no data
-  coord_polar(start = 0 - radians_to_rotate)+
-  theme_minimal()+
+  coord_polar(start = 0 - radians_to_rotate) +
+  theme_minimal() +
   theme(
     axis.text.y = element_blank(),  
     panel.grid.major.y = element_blank(),  
     panel.grid.minor.y = element_blank(),
     axis.title.x = element_blank(), 
-    axis.title.y = element_blank())
+    axis.title.y = element_blank()
+  ) +
+  scale_fill_manual(values = premises_type_colors)
 ```
 
 ## Sub-question 4: How does the type of area (residential, commercial, industrial) influence bike theft rates?
@@ -345,16 +368,16 @@ ggplot(hour_plot, aes(x = OCC_HOUR, fill=`Premises Type`)) +
 #| fig-height: 4
 
 
-my_colors <- setNames(c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"), unique_hotspots)
+my_colors <- setNames(c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"), unique_pre)
 
 
-ggplot(data_premise, aes(x = PREMISES_TYPE, y = prop, fill = HOTSPOT)) +
+ggplot(data_premise, aes(x = HOTSPOT, y = prop, fill = PREMISES_TYPE)) +
   geom_bar(stat = "identity", position = position_fill(reverse = TRUE), width = 0.7) +
   # geom_text(aes(label = scales::percent(prop, accuracy = 1)), 
   #           position = position_fill(vjust = 0.5), size = 2.5, color = "white") +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   scale_fill_manual(values = my_colors) +
-  labs(x = "Premise Type", y = "Proportion of Thefts", fill = "Hotspot") +
+  labs(x = "Hot Spot", y = "Proportion of Thefts", fill = "Premises Type") +
   theme_minimal() +
   theme(legend.position = "bottom",
         legend.direction = "horizontal",
@@ -365,7 +388,8 @@ ggplot(data_premise, aes(x = PREMISES_TYPE, y = prop, fill = HOTSPOT)) +
   guides(fill = guide_legend(nrow = 2))
 ```
 
-## Sub-question 5: What are the cost profiles of bicycles stolen in Toronto?
+## Sub-question 5: What are the cost profiles of bicycles stolen in Toronto? 
+
 ```{r}
 #| echo: false
 #| warning: false
@@ -375,20 +399,17 @@ ggplot(data_premise, aes(x = PREMISES_TYPE, y = prop, fill = HOTSPOT)) +
 #| fig-width: 8
 #| fig-height: 4
 
-
 ggplot(combined_data, aes(x = Average_Bike_Cost, fill = Theft_Level)) +
   geom_density(alpha = 0.5) +  # Set transparency to see overlapping areas
-  scale_fill_manual(values = c("High Theft Rate" = "red", "Low Theft Rate" = "blue")) +
+  scale_fill_manual(values = c("High Theft Rate" = "#C0392B", "Low Theft Rate" = "#3498DB")) +  # Deep red and blue-green
   labs(
-       x = "Average Bike Cost ($)",
-       y = "Density",
-       fill = "Theft Rate Level") +
+    x = "Average Bike Cost ($)",
+    y = "Density",
+    fill = "Theft Rate Level"
+  ) +
   theme_minimal() +
   theme(legend.position = "right")
-
 ```
-
-
 
 
 ```{r}
