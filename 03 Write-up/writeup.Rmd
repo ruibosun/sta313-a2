@@ -21,6 +21,7 @@ library(readr)
 library(ggmap)
 library(sf)
 library(patchwork)
+library(here)
 ```
 
 
@@ -29,14 +30,15 @@ library(patchwork)
 #| warning: false
 #| message: false
 
+
 # import data
 
-bike_raw_raw <- read_csv("01 Input/Bicycle_Thefts_Open_Data.csv")
-neighbourhood_data <- read_csv("01 Input/Neighbourhood_Crime_Rates_Open_Data.csv")
+bike_raw_raw <- read_csv(here("01 Input","Bicycle_Thefts_Open_Data.csv"))
+neighbourhood_data <- read_csv(here("01 Input","Neighbourhood_Crime_Rates_Open_Data.csv"))
 # lane <- read_csv("01 Input/cycling-network - 4326.csv")
-toronto_neighborhoods <- st_read(file.path("01 Input/toneighshape/Neighbourhoods v2_region.shp"))
+toronto_neighborhoods <- st_read(here("01 Input", "toneighshape", "Neighbourhoods v2_region.shp"))
 
-shape <- st_read("01 Input/cycling-network - 4326/cycling-network - 4326.shp")
+shape <- st_read(here("01 Input", "cycling-network - 4326", "cycling-network - 4326.shp"))
 
 # data cleaning
 bike_raw <- bike_raw_raw %>% filter(OCC_YEAR>2013)
@@ -76,7 +78,7 @@ bike_raw$y_n <- ifelse(bike_raw$STATUS =='RECOVERED','Yes','NO')
 # unique_hotspots <- unique(data_premise$HOTSPOT)
 
 
-neighbourhood_data <- read_csv("01 Input/Neighbourhood_Crime_Rates_Open_Data.csv")
+neighbourhood_data <- read_csv(here("01 Input","Neighbourhood_Crime_Rates_Open_Data.csv"))
 
 average_bike_thefts <- neighbourhood_data %>%
   # Select the HOOD_ID and BIKETHEFT columns
