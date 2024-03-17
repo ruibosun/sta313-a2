@@ -1,12 +1,12 @@
 ---
-title: "CHANGE TITLE"
+title: "Where and When Do Bicycles Disappear the Most in Toronto?"
+subtitle: "Unveiling the Pattern and Potential Factors of Bike Theft"
 author: "Ruibo Sun and Nixi Huang"
-date: "`r Sys.time()`"
+date: "`r format(Sys.Date(), '%d,%m,%Y')`"
 output: pdf_document
-abstract: ADD ABSTRACT
 format: pdf
 number-sections: true
-date-format: D MMMM YYYY
+bibliography: references.bib
 ---
 
 ```{r}
@@ -209,43 +209,12 @@ ggmap(toronto_map) +
 
 ## Sub-question 1: Where do the highest numbers of bike thefts occur in Toronto?
 
-```{r}
-#| echo: false
-#| warning: false
-#| message: false
-#| label: fig-map1
-#| fig-cap: Average Bike Thefts in Toronto by Neighborhood
-#| fig-width: 8
-#| fig-height: 4
-
-
-bike_thefts_avg <- bike_raw %>%
-  group_by(NEIGHBOURHOOD_158, OCC_YEAR) %>%
-  summarise(count = n(), .groups = 'drop') %>%
-  group_by(NEIGHBOURHOOD_158) %>%
-  summarise(avg_count = mean(count), .groups = 'drop')
-
-
-toronto_thefts_geo <- merge(toronto_neighborhoods, bike_thefts_avg, 
-                            by.x = "NAME", by.y = "NEIGHBOURHOOD_158")
-
-ggplot(toronto_thefts_geo) +
-  geom_sf(aes(fill = avg_count), color = "white", size = 0.2) +
-  scale_fill_gradient(low = "beige", high = "darkred") +  # Adjust color scale as needed
-  labs( 
-       fill = "Average number of thefts \n each year") +
-  theme_minimal() +
-  theme(legend.position = "right", panel.grid.major = element_blank(), panel.grid.minor = element_blank())
-```
 
 ```{r}
-#| echo: false
+#| include: false
 #| warning: false
 #| message: false
-#| label: fig-map2
-#| fig-cap: Bike Thefts Crime Rate and Bike Lanes in Toronto by Neighborhood
-#| fig-width: 8
-#| fig-height: 4
+
 
 
 ggplot(toronto_thefts_rate) +
@@ -256,23 +225,30 @@ ggplot(toronto_thefts_rate) +
        fill = " Number of \n bike thefts crimes \n per 100,000 \n population each year") +
   theme_minimal() +
   theme(legend.position = "right", panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
 ```
+
 ```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-map2
+
+
 ggplot(toronto_thefts_rate) +
   geom_sf(aes(fill = average_bike_thefts), color = "white", size = 0.2) +  # Reduced border size
-  geom_sf(data = shape, color = "black", size = 0.5, inherit.aes = FALSE, alpha = 0.3) +  # Reduced border size and transparency
-  scale_fill_gradient(low = "beige", high = "#8D021F", 
-                      breaks = c(100, 200, 400, 600), 
-                      labels = c("Low", "Moderate", "High", "Very High")) +  # More descriptive breaks
-  labs(
-    fill = "Average Number of \n crimes per 100,000 \n population each year"
-  ) +
+  geom_sf(data = shape, color = "#C0392B", size = 0.5, inherit.aes = FALSE, alpha = 0.4) +  # Reduced border size and transparency
+  scale_fill_gradient(low = "beige", high = "darkblue") +  # More descriptive breaks
+  labs(title = "Figure 1: Bike Thefts Crime Rate and \n Bike Lanes in Toronto by Neighborhood",
+    fill = " Average Number of \n bike theft per 100,000 \n population each year") +
   theme_minimal() +
   theme(
     legend.position = "right", 
     panel.grid.major = element_blank(), 
-    panel.grid.minor = element_blank())  # Adjusting margin if needed
-  
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(hjust = 0.5, vjust = 1),
+        plot.margin = margin(t = 1, r = 1, b = 30, l = 1, unit = "pt"))  # Adjusting margin if needed
+
 
 ```
 
@@ -284,9 +260,6 @@ ggplot(toronto_thefts_rate) +
 #| warning: false
 #| message: false
 #| label: fig-top5
-#| fig-cap: Trend of Bike Thefts Over Time in the Top 5 Hotspots
-#| fig-width: 8
-#| fig-height: 4
 
 theft_trends <- bike_raw %>%
   filter(NEIGHBOURHOOD_158 %in% top_neighborhoods$NEIGHBOURHOOD_158) %>%
@@ -316,8 +289,10 @@ ggplot(theft_trends, aes(x = OCC_YEAR, y = Thefts, group = NEIGHBOURHOOD_158, co
   scale_y_continuous(limits = c(floor(min(theft_trends$Thefts)/10)*10, ceiling(max(theft_trends$Thefts)/10)*10),
                      breaks = seq(floor(min(theft_trends$Thefts)/10)*10, ceiling(max(theft_trends$Thefts)/10)*10, by = 50)) +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
-  labs(
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        plot.title = element_text(hjust = 0.5, vjust = 1),
+        plot.margin = margin(t = 1, r = 1, b = 30, l = 1, unit = "pt")) +
+  labs(title = "Figure 2: Trend of Bike Thefts Over \n Time in the Top 5 Hotspots in Toronto",
        x = "Year",
        y = "Number of Thefts",
        color = "Location")
@@ -331,9 +306,7 @@ ggplot(theft_trends, aes(x = OCC_YEAR, y = Thefts, group = NEIGHBOURHOOD_158, co
 #| warning: false
 #| message: false
 #| label: fig-clock
-#| fig-cap: Bike Theft Trends by Hour (Private vs. Public Spaces)
-#| fig-width: 8
-#| fig-height: 4
+
 
 hour_plot <- hour_plot %>%
   mutate(season = if_else(OCC_MONTH %in% c("December", "January", "February", "March", "April", "November"), 'Cold', 'Warm'))
@@ -347,13 +320,16 @@ ggplot(hour_plot, aes(x = OCC_HOUR, fill = `Premises Type`)) +
   geom_bar() +
   scale_x_discrete(drop = FALSE) + # Include all levels, even if some have no data
   coord_polar(start = 0 - radians_to_rotate) +
+  labs(title =  "Figure 3: Bike Theft Trends in 24-Hour (Private vs. Public Spaces) in Toronto")+
   theme_minimal() +
   theme(
     axis.text.y = element_blank(),  
     panel.grid.major.y = element_blank(),  
     panel.grid.minor.y = element_blank(),
     axis.title.x = element_blank(), 
-    axis.title.y = element_blank()
+    axis.title.y = element_blank(),
+    plot.title = element_text(hjust = 0.5, vjust = 1),
+    plot.margin = margin(t = 1, r = 1, b = 30, l = 1, unit = "pt")
   ) +
   scale_fill_manual(values = premises_type_colors)
 ```
@@ -365,10 +341,6 @@ ggplot(hour_plot, aes(x = OCC_HOUR, fill = `Premises Type`)) +
 #| warning: false
 #| message: false
 #| label: fig-prop
-#| fig-cap: Proportional Distribution of Bike Thefts Across Premises Types in Toronto Top 5 Hotspots
-#| fig-width: 8
-#| fig-height: 4
-
 
 my_colors <- setNames(c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"), unique_pre)
 
@@ -379,38 +351,42 @@ ggplot(data_premise, aes(x = HOTSPOT, y = prop, fill = PREMISES_TYPE)) +
   #           position = position_fill(vjust = 0.5), size = 2.5, color = "white") +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   scale_fill_manual(values = my_colors) +
-  labs(x = "Hot Spot", y = "Proportion of Thefts", fill = "Premises Type") +
+  labs(x = "Hot Spot", y = "Proportion of Thefts", fill = "Premises Type",
+       title = "Figure 4: Proportional Distribution of Bike Thefts \n Across Premises Types in Toronto Top 5 Hotspots") +
   theme_minimal() +
   theme(legend.position = "bottom",
         legend.direction = "horizontal",
         legend.box = "vertical",
         text = element_text(size = 8),
         axis.text.x = element_text(size = 6),
-        legend.text = element_text(size = 6)) +
+        legend.text = element_text(size = 6),
+        plot.title = element_text(hjust = 0.5, vjust = 1),
+        plot.margin = margin(t = 1, r = 1, b = 30, l = 1, unit = "pt")) +
   guides(fill = guide_legend(nrow = 2))
 ```
 
 ## Sub-question 5: What are the cost profiles of bicycles stolen in Toronto? 
+
 
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
 #| label: fig-cost
-#| fig-cap: Comparative Density of Bicycle Costs in Areas with High and Low Theft Rates
-#| fig-width: 8
-#| fig-height: 4
+
 
 ggplot(combined_data, aes(x = Average_Bike_Cost, fill = Theft_Level)) +
   geom_density(alpha = 0.5) +  # Set transparency to see overlapping areas
   scale_fill_manual(values = c("Area with High Theft Rate" = "#C0392B", "Area with Low Theft Rate" = "#3498DB")) +  # Deep red and blue-green
-  labs(
+  labs(title = "Figure 5: Comparative Density of Bicycle Costs \n in Areas with High and Low Theft Rates in Toronto",
     x = "Average Bike Cost ($)",
     y = "Density",
     fill = "Theft Rate Level"
   ) +
   theme_minimal() +
-  theme(legend.position = "right")
+  theme(legend.position = "right",
+        plot.title = element_text(hjust = 0.5, vjust = 1),
+        plot.margin = margin(t = 1, r = 1, b = 30, l = 1, unit = "pt"))
 ```
 
 
@@ -445,4 +421,7 @@ bike_p$cost_level <- factor(bike_p$cost_level, levels = c("Affordable", "Expensi
 ```
 
 
+\newpage
 
+
+# References
