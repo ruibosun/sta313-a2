@@ -97,7 +97,7 @@ toronto_thefts_rate <- merge(toronto_neighborhoods, average_bike_thefts,
 threshold <- median(average_bike_thefts$average_bike_thefts)  
 
 average_bike_thefts <- average_bike_thefts %>%
-  mutate(Theft_Level = if_else(average_bike_thefts >= threshold, "High Theft Rate", "Low Theft Rate")) %>% rename('NEIGHBOURHOOD_158'='AREA_NAME')
+  mutate(Theft_Level = if_else(average_bike_thefts >= threshold, "Area with High Theft Rate", "Area with Low Theft Rate")) %>% rename('NEIGHBOURHOOD_158'='AREA_NAME')
 
 
 
@@ -401,7 +401,7 @@ ggplot(data_premise, aes(x = HOTSPOT, y = prop, fill = PREMISES_TYPE)) +
 
 ggplot(combined_data, aes(x = Average_Bike_Cost, fill = Theft_Level)) +
   geom_density(alpha = 0.5) +  # Set transparency to see overlapping areas
-  scale_fill_manual(values = c("High Theft Rate" = "#C0392B", "Low Theft Rate" = "#3498DB")) +  # Deep red and blue-green
+  scale_fill_manual(values = c("Area with High Theft Rate" = "#C0392B", "Area with Low Theft Rate" = "#3498DB")) +  # Deep red and blue-green
   labs(
     x = "Average Bike Cost ($)",
     y = "Density",
